@@ -13,7 +13,7 @@ public class deathManager : MonoBehaviour
 
     public Transform position;
 
-    public GameObject deathParticale;
+    //public GameObject deathParticale;
 
     //public GameObject DeathScreen;
 
@@ -23,27 +23,27 @@ public class deathManager : MonoBehaviour
 
     private void Awake()
     {
-       
+
         ded = false;
         instance = this;
         impulseSource = GetComponent<CinemachineImpulseSource>();
     }
-  
+
     void effects()
     {
-        Instantiate(deathParticale, position.position, Quaternion.identity);
+        // Instantiate(deathParticale, position.position, Quaternion.identity);
     }
 
- 
+
 
     public void die()
     {
         //SoundManager.PlaySound(SoundType.death);
         //GameManager.instance.restart();
         //DeathScreen.SetActive(true);
-        ShakeManager.Shake(impulseSource);
-        effects();
-        ded = true;        
+        //ShakeManager.Shake(impulseSource);
+        //effects();
+        ded = true;
         Destroy(plr);
     }
 }

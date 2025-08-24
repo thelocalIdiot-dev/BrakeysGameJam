@@ -10,7 +10,7 @@ public class ShakeManager
 
 
         // Generate an impulse with the specified force
-        Impulsesource.GenerateImpulseWithForce(force);
+        //        Impulsesource.GenerateImpulseWithForce(force);
     }
 
 }

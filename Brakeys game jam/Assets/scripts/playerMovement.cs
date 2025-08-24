@@ -159,4 +159,13 @@ public class PlayerController2D : MonoBehaviour
         Gizmos.DrawWireCube(groundCheck.position, groundCheckSize);
         Gizmos.DrawWireCube(wallCheck.position, wallCheckSize);
     }
+
+    void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (collision.gameObject.CompareTag("Saw"))
+        {
+            deathManager.instance.die();
+        }
+
+    }
 }
