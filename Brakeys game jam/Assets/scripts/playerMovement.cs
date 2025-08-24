@@ -1,10 +1,8 @@
-//using Dialog;
-//using SmallHedge.SoundManager;
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Mathematics;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.VFX;
 
@@ -20,19 +18,18 @@ public class playerMovement : MonoBehaviour
     public Rigidbody2D rb;
     public LayerMask groundLayer;
     public Animator PlayerAnimator;
-    public Transform landPosition;
     [Header("Input")]
     public float HorizontalInput;
     public bool Jumping;
     [Header("Debug")]
     public bool facingRight = true;
-    public GameObject land;
+
 
     public static playerMovement instance;
     void Start()
     {
         instance = this;
-        PlayerAnimator = GetComponentInChildren<Animator>();       
+        PlayerAnimator = GetComponentInChildren<Animator>();
     }
 
     void Update()
@@ -40,14 +37,14 @@ public class playerMovement : MonoBehaviour
         GetInput();
 
         //---Horizontal Movement---//
-        Vector2 movement = new Vector2 (HorizontalInput * speed, rb.velocity.y);
+        Vector2 movement = new Vector2(HorizontalInput * speed, rb.velocity.y);
         rb.velocity = movement;
 
         //---Jumping---//
         if (Input.GetButtonDown("Jump") && grounded())
         {
             rb.velocity = new Vector2(rb.velocity.x, jumpPower);
-            //SoundManager.PlaySound(SoundType.jump);
+            // SoundManager.PlaySound(SoundType.jump);
         }
         if (Input.GetButtonUp("Jump") && rb.velocity.y > 0)
         {
@@ -66,16 +63,14 @@ public class playerMovement : MonoBehaviour
 
         //---Visuals---//
         HandleFlip();
-        SetAnimationParameters();
-        //footstepSounds();
+        //SetAnimationParameters();
     }
-    
+
     void GetInput()
     {
         HorizontalInput = Input.GetAxis("Horizontal");
         Jumping = Input.GetButtonDown("Jump");
     }
-
 
     public bool grounded()
     {
@@ -93,31 +88,25 @@ public class playerMovement : MonoBehaviour
         }
     }
 
-    void SetAnimationParameters()
-    {
-        PlayerAnimator.SetFloat("Speed X", math.abs(HorizontalInput));
-        PlayerAnimator.SetFloat("Speed Y", rb.velocity.y);
-        PlayerAnimator.SetBool("grounded", grounded());
-    }
+    /*  void SetAnimationParameters()
+      {
+          PlayerAnimator.SetFloat("Speed X", math.abs(HorizontalInput));
+          PlayerAnimator.SetFloat("Speed Y", rb.velocity.y);
+          PlayerAnimator.SetBool("grounded", grounded());
+      }*/
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.transform.gameObject.layer == 8 && !deathManager.instance.ded)
-        {
-            deathManager.instance.die();
-        }
+         if (collision.transform.gameObject.layer == 8 && !deathManager.instance.ded)
+         {
+             deathManager.instance.die();
+         }
     }
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        if (collision.transform.gameObject.layer == 8 && !deathManager.instance.ded)
-        {
-            deathManager.instance.die();
-        }
-        if (grounded())
-        {
-            //SoundManager.PlaySound(SoundType.land);
-            Instantiate(land, landPosition.position, Quaternion.identity);
-            
-        }
+         if (collision.transform.gameObject.layer == 8 && !deathManager.instance.ded)
+         {
+             deathManager.instance.die();
+         }
     }
 }

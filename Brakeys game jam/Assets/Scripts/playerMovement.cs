@@ -97,16 +97,16 @@ public class playerMovement : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        /* if (collision.transform.gameObject.layer == 8 && !deathManager.instance.ded)
+         if (collision.transform.gameObject.layer == 8 && !deathManager.instance.ded)
          {
              deathManager.instance.die();
-         }*/
+         }
     }
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        /* if (collision.transform.gameObject.layer == 8 && !deathManager.instance.ded)
+         if (collision.transform.gameObject.layer == 8 && !deathManager.instance.ded)
          {
              deathManager.instance.die();
-         }*/
+         }
     }
 }
