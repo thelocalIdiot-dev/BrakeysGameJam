@@ -27,14 +27,18 @@ public class PlayerController2D : MonoBehaviour
     public float slideSpeed = 2f;
     public float wallJumpForceX;
     public float wallJumpForceY;
-    public float wallJumpTime;
+
     private bool wallJumping;
 
+
+    public float wallCoyoteTime = 0.3f;
+    private float wallCoyoteCounter;
 
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
     }
+
     void Update()
     {
         InputX = Input.GetAxisRaw("Horizontal");
@@ -44,6 +48,8 @@ public class PlayerController2D : MonoBehaviour
         {
             jumping = true;
         }
+
+        // Comprobamos sliding
         if (!isGrounded && isTouchingWall && InputX != 0)
         {
             sliding = true;
@@ -58,14 +64,23 @@ public class PlayerController2D : MonoBehaviour
     {
         isGrounded = Physics2D.OverlapBox(groundCheck.position, groundCheckSize, 0, groundLayer);
         isTouchingWall = Physics2D.OverlapBox(wallCheck.position, wallCheckSize, 0, groundLayer);
+
+        // Manejo del "wall coyote time"
+        if (isTouchingWall && InputX != 0)
+        {
+            wallCoyoteCounter = wallCoyoteTime;
+        }
+        else
+        {
+            wallCoyoteCounter -= Time.fixedDeltaTime;
+        }
+
         Move(moveInput * Time.fixedDeltaTime, jumping);
         jumping = false;
 
         if (sliding)
         {
-
             rb.velocity = new Vector2(rb.velocity.x, Mathf.Clamp(rb.velocity.y, -slideSpeed, float.MaxValue));
-
         }
     }
 
@@ -76,7 +91,6 @@ public class PlayerController2D : MonoBehaviour
             Vector3 targetVelocity = new Vector2(move * 10f, rb.velocity.y);
             rb.velocity = Vector3.SmoothDamp(rb.velocity, targetVelocity, ref velocity, movementSmoothing);
         }
-
 
         if (move > 0 && !facingRight)
         {
@@ -91,25 +105,38 @@ public class PlayerController2D : MonoBehaviour
         {
             Jump();
         }
-        if (isTouchingWall && sliding && jump)
+
+        if (wallCoyoteCounter > 0f && jump && !isGrounded)
         {
             JumpWall();
         }
-
     }
 
     private void JumpWall()
     {
-        isTouchingWall = false;
-        rb.velocity = new Vector2(wallJumpForceX * -InputX, wallJumpForceY);
+        wallCoyoteCounter = 0f;
+
+        if (isTouchingWall)
+        {
+            rb.velocity = new Vector2(wallJumpForceX * -InputX, wallJumpForceY);
+        }
+        else
+        {
+            rb.velocity = new Vector2(wallJumpForceX * InputX, wallJumpForceY);
+        }
+
+
         StartCoroutine(StopWallJumping());
     }
+
 
     private IEnumerator StopWallJumping()
     {
         wallJumping = true;
-        yield return new WaitForSeconds(wallJumpTime);
+        yield return new WaitForSeconds(wallCoyoteTime);
         wallJumping = false;
+        yield return new WaitForSeconds(1f);
+        wallCoyoteCounter = 0f;
     }
 
     private void Flip()
@@ -125,6 +152,7 @@ public class PlayerController2D : MonoBehaviour
         isGrounded = false;
         rb.AddForce(new Vector2(0f, jumpForce), ForceMode2D.Impulse);
     }
+
     void OnDrawGizmos()
     {
         Gizmos.color = Color.yellow;
@@ -132,5 +160,3 @@ public class PlayerController2D : MonoBehaviour
         Gizmos.DrawWireCube(wallCheck.position, wallCheckSize);
     }
 }
-
-
