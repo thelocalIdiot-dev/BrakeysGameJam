@@ -164,7 +164,7 @@ public class PlayerController2D : MonoBehaviour
     {
         if (collision.gameObject.CompareTag("Saw"))
         {
-            deathManager.instance.die();
+            GameManager.instance.restart();
         }
 
     }
