@@ -154,7 +154,7 @@ public class playerMovement : MonoBehaviour
 
     public bool grounded()
     {
-        return Physics2D.OverlapCircle(groundCheck.position, 0.2f, groundLayer);
+        return Physics2D.Raycast(groundCheck.position, Vector2.down, 0.3f, groundLayer);
     }
 
     private void HandleFlip()
@@ -199,5 +199,6 @@ public class playerMovement : MonoBehaviour
         Gizmos.color = Color.red;
         Gizmos.DrawLine(WallJumpCheck.position, WallJumpCheck.position + Vector3.left * wallJumpDetectDistance);
         Gizmos.DrawLine(WallJumpCheck.position, WallJumpCheck.position + Vector3.right * wallJumpDetectDistance);
+        Gizmos.DrawLine(groundCheck.position, groundCheck.position + Vector3.down * 0.3f);
     }
 }
