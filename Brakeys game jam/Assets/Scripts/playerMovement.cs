@@ -1,171 +1,202 @@
+//using Dialog;
+//using SmallHedge.SoundManager;
 using System;
 using System.Collections;
+using System.Collections.Generic;
+using Unity.Mathematics;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.VFX;
 
-public class PlayerController2D : MonoBehaviour
+public class playerMovement : MonoBehaviour
 {
-    private float InputX;
-    private Rigidbody2D rb;
-    private float moveInput;
-    public float speed = 5f;
-    [Range(0, 0.3f)] public float movementSmoothing;
-    private Vector3 velocity = Vector3.zero;
-    private bool facingRight = true;
-
-    public float jumpForce = 10f;
-    public LayerMask groundLayer;
+    [Header("values")]
+    public float speed = 10;
+    public float jumpPower = 20;
+    public float upGravity = 5;
+    public float fallingGravity = 7;
+    [Header("Reference")]
     public Transform groundCheck;
-    public Vector3 groundCheckSize;
-    private bool isGrounded;
-    private bool jumping;
-    [Header("Wall Jumping")]
-    public Transform wallCheck;
-    public Vector3 wallCheckSize;
-    private bool isTouchingWall;
-    private bool sliding;
-    public float slideSpeed = 2f;
-    public float wallJumpForceX;
-    public float wallJumpForceY;
+    public Transform WallJumpCheck;
+    public Rigidbody2D rb;
+    public LayerMask groundLayer;
+    public Animator PlayerAnimator;
+    public Transform landPosition;
+    [Header("Input")]
+    public float HorizontalInput;
+    public bool Jumping;
+    [Header("Debug")]
+    public bool facingRight = true;
+    public GameObject land;
+    [Header("Input")]
+    public float wallJumpForceX = 30;
+    public float wallJumpForceY = 20;
+    public float wallJumpDetectDistance = 0.8f;
+    public float wallJumpTimer = 0.5f;
+    public LayerMask wallJumpable;
+    public bool onWall;
+    public bool wallJumping;
+    RaycastHit2D wallLeft;
+    RaycastHit2D wallRight;
 
-    private bool wallJumping;
 
-
-    public float wallCoyoteTime = 0.3f;
-    private float wallCoyoteCounter;
-
+    public static playerMovement instance;
+    GameObject LSP;
+    public float TG;
     void Start()
     {
-        rb = GetComponent<Rigidbody2D>();
+        instance = this;
+        PlayerAnimator = GetComponentInChildren<Animator>();
     }
 
     void Update()
     {
-        InputX = Input.GetAxisRaw("Horizontal");
-        moveInput = InputX * speed;
+        GetInput();
 
-        if (Input.GetButtonDown("Jump"))
-        {
-            jumping = true;
-        }
 
-        // Comprobamos sliding
-        if (!isGrounded && isTouchingWall && InputX != 0)
-        {
-            sliding = true;
-        }
-        else
-        {
-            sliding = false;
-        }
-    }
+        //---Land Smoke---//
+        if (grounded())
+            TG += 1;        
+        else       
+            TG = 0;
 
-    void FixedUpdate()
-    {
-        isGrounded = Physics2D.OverlapBox(groundCheck.position, groundCheckSize, 0, groundLayer);
-        isTouchingWall = Physics2D.OverlapBox(wallCheck.position, wallCheckSize, 0, groundLayer);
+        if (TG == 1)       
+            LSP = Instantiate(land, landPosition.position, Quaternion.LookRotation(new Vector3(0, 90, 0)));       
 
-        // Manejo del "wall coyote time"
-        if (isTouchingWall && InputX != 0)
-        {
-            wallCoyoteCounter = wallCoyoteTime;
-        }
-        else
-        {
-            wallCoyoteCounter -= Time.fixedDeltaTime;
-        }
 
-        Move(moveInput * Time.fixedDeltaTime, jumping);
-        jumping = false;
-
-        if (sliding)
-        {
-            rb.velocity = new Vector2(rb.velocity.x, Mathf.Clamp(rb.velocity.y, -slideSpeed, float.MaxValue));
-        }
-    }
-
-    private void Move(float move, bool jump)
-    {
+        Destroy(LSP, .5f);
+        //---Horizontal Movement---//
+        Vector2 movement = new Vector2(HorizontalInput * speed, rb.velocity.y);        
         if (!wallJumping)
         {
-            Vector3 targetVelocity = new Vector2(move * 10f, rb.velocity.y);
-            rb.velocity = Vector3.SmoothDamp(rb.velocity, targetVelocity, ref velocity, movementSmoothing);
+            rb.velocity = movement;
         }
-
-        if (move > 0 && !facingRight)
+        //---Jumping---//
+        if (!wallJumping)
         {
-            Flip();
+            if (Jumping && grounded())
+            {
+                rb.velocity = new Vector2(rb.velocity.x, jumpPower);
+                //SoundManager.PlaySound(SoundType.jump);
+            }
+            if (Input.GetButtonUp("Jump") && rb.velocity.y > 0)
+            {
+                rb.velocity = new Vector2(rb.velocity.x, rb.velocity.y * 0.5f);
+            }
         }
-        else if (move < 0 && facingRight)
+        
+        //---Custom Gravity---//
+        if (rb.velocity.y < 0)
         {
-            Flip();
-        }
-
-        if (isGrounded && jump && !sliding)
-        {
-            Jump();
-        }
-
-        if (wallCoyoteCounter > 0f && jump && !isGrounded)
-        {
-            JumpWall();
-        }
-    }
-
-    private void JumpWall()
-    {
-        wallCoyoteCounter = 0f;
-
-        if (isTouchingWall)
-        {
-            rb.velocity = new Vector2(wallJumpForceX * -InputX, wallJumpForceY);
+            rb.gravityScale = fallingGravity;
         }
         else
         {
-            rb.velocity = new Vector2(wallJumpForceX * InputX, wallJumpForceY);
+            rb.gravityScale = upGravity;
         }
 
+        //---Visuals---//
+        HandleFlip();
+        SetAnimationParameters();
 
-        StartCoroutine(StopWallJumping());
+
+        //---wall jump---//
+        DetectWallJump();
     }
 
+    void DetectWallJump()
+    {
+        wallLeft = Physics2D.Raycast(WallJumpCheck.position, Vector2.left, wallJumpDetectDistance, wallJumpable);
+        wallRight = Physics2D.Raycast(WallJumpCheck.position, Vector2.right, wallJumpDetectDistance, wallJumpable);
 
-    private IEnumerator StopWallJumping()
+        if(wallLeft || wallRight)
+        {
+            onWall = true;
+        }
+        else
+        {
+            onWall = false;
+        }
+
+        if (onWall && Jumping)
+        {
+            if(wallLeft.collider != null)
+            {
+                wallJump(wallJumpForceX, wallJumpForceY);
+            }
+            else if (wallRight.collider != null)
+            {
+                wallJump(-wallJumpForceX, wallJumpForceY);
+            }
+        }
+    }
+
+    void wallJump(float side, float up)
     {
         wallJumping = true;
-        yield return new WaitForSeconds(wallCoyoteTime);
+        rb.velocity = new Vector2(side, up);
+        StartCoroutine(stopWallJump());
+    }
+
+    IEnumerator stopWallJump()
+    {
+        yield return new WaitForSeconds(wallJumpTimer);
         wallJumping = false;
-        yield return new WaitForSeconds(1f);
-        wallCoyoteCounter = 0f;
     }
 
-    private void Flip()
+    void GetInput()
     {
-        facingRight = !facingRight;
-        Vector3 scaler = transform.localScale;
-        scaler.x *= -1;
-        transform.localScale = scaler;
+        HorizontalInput = Input.GetAxis("Horizontal");
+        Jumping = Input.GetButtonDown("Jump");
     }
 
-    private void Jump()
+
+    public bool grounded()
     {
-        isGrounded = false;
-        rb.AddForce(new Vector2(0f, jumpForce), ForceMode2D.Impulse);
+        return Physics2D.OverlapCircle(groundCheck.position, 0.2f, groundLayer);
     }
 
-    void OnDrawGizmos()
+    private void HandleFlip()
     {
-        Gizmos.color = Color.yellow;
-        Gizmos.DrawWireCube(groundCheck.position, groundCheckSize);
-        Gizmos.DrawWireCube(wallCheck.position, wallCheckSize);
+        if (facingRight && HorizontalInput < 0f || !facingRight && HorizontalInput > 0f)
+        {
+            facingRight = !facingRight;
+            Vector3 LocalScale = transform.localScale;
+            LocalScale.x *= -1f;
+            transform.localScale = LocalScale;
+        }
     }
 
-    void OnCollisionEnter2D(Collision2D collision)
+    void SetAnimationParameters()
     {
-        if (collision.gameObject.CompareTag("Saw"))
+        PlayerAnimator.SetFloat("Speed X", math.abs(HorizontalInput));
+        PlayerAnimator.SetFloat("Speed Y", rb.velocity.y);
+        PlayerAnimator.SetBool("grounded", grounded());
+    }
+
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (collision.transform.gameObject.layer == 8 && !deathManager.instance.ded)
         {
             deathManager.instance.die();
         }
+    }
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (collision.transform.gameObject.layer == 8 && !deathManager.instance.ded)
+        {
+            deathManager.instance.die();
+        }
+        if (grounded())
+        {
+            //SoundManager.PlaySound(SoundType.land);
+        }
+    }
 
+    private void OnDrawGizmosSelected()
+    {
+        Gizmos.color = Color.red;
+        Gizmos.DrawLine(WallJumpCheck.position, WallJumpCheck.position + Vector3.left * wallJumpDetectDistance);
+        Gizmos.DrawLine(WallJumpCheck.position, WallJumpCheck.position + Vector3.right * wallJumpDetectDistance);
     }
 }
