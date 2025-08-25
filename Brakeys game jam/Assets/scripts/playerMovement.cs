@@ -38,6 +38,7 @@ public class playerMovement : MonoBehaviour
     public bool wallJumping;
     RaycastHit2D wallLeft;
     RaycastHit2D wallRight;
+    [Header("GroundCheck")]
 
 
     public static playerMovement instance;
@@ -56,17 +57,17 @@ public class playerMovement : MonoBehaviour
 
         //---Land Smoke---//
         if (grounded())
-            TG += 1;        
-        else       
+            TG += 1;
+        else
             TG = 0;
 
-        if (TG == 1)       
-            LSP = Instantiate(land, landPosition.position, Quaternion.LookRotation(new Vector3(0, 90, 0)));       
+        if (TG == 1)
+            LSP = Instantiate(land, landPosition.position, Quaternion.LookRotation(new Vector3(0, 90, 0)));
 
 
         Destroy(LSP, .5f);
         //---Horizontal Movement---//
-        Vector2 movement = new Vector2(HorizontalInput * speed, rb.velocity.y);        
+        Vector2 movement = new Vector2(HorizontalInput * speed, rb.velocity.y);
         if (!wallJumping)
         {
             rb.velocity = movement;
@@ -84,7 +85,7 @@ public class playerMovement : MonoBehaviour
                 rb.velocity = new Vector2(rb.velocity.x, rb.velocity.y * 0.5f);
             }
         }
-        
+
         //---Custom Gravity---//
         if (rb.velocity.y < 0)
         {
@@ -109,7 +110,7 @@ public class playerMovement : MonoBehaviour
         wallLeft = Physics2D.Raycast(WallJumpCheck.position, Vector2.left, wallJumpDetectDistance, wallJumpable);
         wallRight = Physics2D.Raycast(WallJumpCheck.position, Vector2.right, wallJumpDetectDistance, wallJumpable);
 
-        if(wallLeft || wallRight)
+        if (wallLeft || wallRight)
         {
             onWall = true;
         }
@@ -118,9 +119,9 @@ public class playerMovement : MonoBehaviour
             onWall = false;
         }
 
-        if (onWall && Jumping)
+        if (onWall && Jumping && !grounded() && !wallJumping)
         {
-            if(wallLeft.collider != null)
+            if (wallLeft.collider != null)
             {
                 wallJump(wallJumpForceX, wallJumpForceY);
             }
