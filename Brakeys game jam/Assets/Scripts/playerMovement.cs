@@ -65,7 +65,7 @@ public class playerMovement : MonoBehaviour
 
         if (TG == 1)
             LSP = Instantiate(land, landPosition.position, Quaternion.LookRotation(new Vector3(0, 90, 0)));
-        SoundManager.PlaySound(SoundType.land);
+            SoundManager.PlaySound(SoundType.land);
 
         if (TG == 1)
         {
