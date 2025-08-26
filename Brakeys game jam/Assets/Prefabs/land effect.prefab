@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 4539255179306327040}
   - component: {fileID: 6590286356153556651}
   m_Layer: 0
-  m_Name: Particle System
+  m_Name: land effect
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

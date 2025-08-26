@@ -7,7 +7,7 @@ using UnityEngine.Audio;
 
 namespace SmallHedge.SoundManager
 {
-    public enum SoundType { jump, death, footstep, Lever, land, door }
+    public enum SoundType { jump, land, hit, footstep, slash}
 
 
     [RequireComponent(typeof(AudioSource))]

@@ -1,5 +1,6 @@
 //using Dialog;
 //using SmallHedge.SoundManager;
+using SmallHedge.SoundManager;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -48,21 +49,25 @@ public class playerMovement : MonoBehaviour
         instance = this;
         PlayerAnimator = GetComponentInChildren<Animator>();
     }
-
+    
     void Update()
     {
         GetInput();
 
 
-        //---Land Smoke---//
+        //---Land effects---//
         if (grounded())
             TG += 1;        
         else       
             TG = 0;
 
-        if (TG == 1)       
-            LSP = Instantiate(land, landPosition.position, Quaternion.LookRotation(new Vector3(0, 90, 0)));       
 
+        if (TG == 1)
+        {
+            LSP = Instantiate(land, landPosition.position, Quaternion.LookRotation(new Vector3(0, 90, 0)));
+            SoundManager.PlaySound(SoundType.land);
+        }
+           
 
         Destroy(LSP, .5f);
         //---Horizontal Movement---//
@@ -77,7 +82,7 @@ public class playerMovement : MonoBehaviour
             if (Jumping && grounded())
             {
                 rb.velocity = new Vector2(rb.velocity.x, jumpPower);
-                //SoundManager.PlaySound(SoundType.jump);
+                SoundManager.PlaySound(SoundType.jump);
             }
             if (Input.GetButtonUp("Jump") && rb.velocity.y > 0)
             {
@@ -118,7 +123,7 @@ public class playerMovement : MonoBehaviour
             onWall = false;
         }
 
-        if (onWall && Jumping)
+        if (onWall && Jumping && !grounded())
         {
             if(wallLeft.collider != null)
             {
@@ -186,10 +191,6 @@ public class playerMovement : MonoBehaviour
         if (collision.transform.gameObject.layer == 8 && !deathManager.instance.ded)
         {
             deathManager.instance.die();
-        }
-        if (grounded())
-        {
-            //SoundManager.PlaySound(SoundType.land);
         }
     }
 
