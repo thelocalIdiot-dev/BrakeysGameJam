@@ -40,6 +40,9 @@ public class playerMovement : MonoBehaviour
     public bool wallJumping;
     RaycastHit2D wallLeft;
     RaycastHit2D wallRight;
+    RaycastHit2D SlidingLeft;
+    RaycastHit2D SlidingRight;
+    public float wallSlideSpeed = 0.5f;
     [Header("GroundCheck")]
 
 
@@ -51,7 +54,7 @@ public class playerMovement : MonoBehaviour
         instance = this;
         PlayerAnimator = GetComponentInChildren<Animator>();
     }
-    
+
     void Update()
     {
         GetInput();
@@ -65,8 +68,8 @@ public class playerMovement : MonoBehaviour
 
         if (TG == 1)
             LSP = Instantiate(land, landPosition.position, Quaternion.LookRotation(new Vector3(0, 90, 0)));
-            SoundManager.PlaySound(SoundType.land);
-           
+            SoundManager.PlaySound(SoundType.land);         
+
         Destroy(LSP, .5f);
         //---Horizontal Movement---//
         Vector2 movement = new Vector2(HorizontalInput * speed, rb.velocity.y);
@@ -109,12 +112,26 @@ public class playerMovement : MonoBehaviour
 
     void DetectWallJump()
     {
+        if (grounded())
+        {
+            SlidingOnWall = false;
+            return;
+        }
         wallLeft = Physics2D.Raycast(WallJumpCheck.position, Vector2.left, wallJumpDetectDistance, wallJumpable);
         wallRight = Physics2D.Raycast(WallJumpCheck.position, Vector2.right, wallJumpDetectDistance, wallJumpable);
 
+
+  //      SlidingLeft = Physics2D.Raycast(WallJumpCheck.position, Vector2.left, 0.45f, wallJumpable);
+    //    SlidingRight = Physics2D.Raycast(WallJumpCheck.position, Vector2.right, 0.45f, wallJumpable);
         if ((wallLeft || wallRight) && !grounded())
         {
+
             onWall = true;
+
+ //          if ((SlidingLeft || SlidingRight) && !grounded())
+ //          {
+ //             
+ //          }
         }
         else
         {
@@ -137,7 +154,7 @@ public class playerMovement : MonoBehaviour
         if((onWall && (HorizontalInput == 1 || HorizontalInput == -1) && !grounded()))
         {
             SlidingOnWall = true;
-            Debug.Log("qeflm<jkn s<difh,o<");
+            rb.velocity = new Vector2(rb.velocity.x, Mathf.Clamp(rb.velocity.y, -wallSlideSpeed, float.MaxValue));
         }
         else
         {
@@ -210,5 +227,8 @@ public class playerMovement : MonoBehaviour
         Gizmos.DrawLine(WallJumpCheck.position, WallJumpCheck.position + Vector3.left * wallJumpDetectDistance);
         Gizmos.DrawLine(WallJumpCheck.position, WallJumpCheck.position + Vector3.right * wallJumpDetectDistance);
         Gizmos.DrawLine(groundCheck.position, groundCheck.position + Vector3.down * 0.3f);
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawRay(WallJumpCheck.position, Vector2.left * 0.45f);
+        Gizmos.DrawRay(WallJumpCheck.position, Vector2.right * 0.37f);
     }
 }
