@@ -36,7 +36,7 @@ public class playerMovement : MonoBehaviour
     public float wallJumpTimer = 0.5f;
     public LayerMask wallJumpable;
     public bool onWall;
-    public bool groundedBool;
+    public bool SlidingOnWall;
     public bool wallJumping;
     public bool IsSliding;
     RaycastHit2D wallLeft;
@@ -67,13 +67,9 @@ public class playerMovement : MonoBehaviour
         else
             TG = 0;
 
-
         if (TG == 1)
             LSP = Instantiate(land, landPosition.position, Quaternion.LookRotation(new Vector3(0, 90, 0)));
         SoundManager.PlaySound(SoundType.land);
-
-
-
 
         Destroy(LSP, .5f);
         //---Horizontal Movement---//
@@ -156,6 +152,16 @@ public class playerMovement : MonoBehaviour
                 wallJump(-wallJumpForceX, wallJumpForceY);
             }
         }
+
+        if ((onWall && (HorizontalInput == 1 || HorizontalInput == -1) && !grounded()))
+        {
+            SlidingOnWall = true;
+            rb.velocity = new Vector2(rb.velocity.x, Mathf.Clamp(rb.velocity.y, -wallSlideSpeed, float.MaxValue));
+        }
+        else
+        {
+            SlidingOnWall = false;
+        }
     }
 
     void wallJump(float side, float up)
@@ -180,16 +186,7 @@ public class playerMovement : MonoBehaviour
 
     public bool grounded()
     {
-
-        if (Physics2D.Raycast(groundCheck.position, Vector2.down, 0.3f, groundLayer))
-        {
-            groundedBool = true;
-        }
-        else
-        {
-            groundedBool = false;
-        }
-        return groundedBool;
+        return Physics2D.Raycast(groundCheck.position, Vector2.down, 0.3f, groundLayer);
     }
 
     private void HandleFlip()
@@ -208,6 +205,7 @@ public class playerMovement : MonoBehaviour
         PlayerAnimator.SetFloat("Speed X", math.abs(HorizontalInput));
         PlayerAnimator.SetFloat("Speed Y", rb.velocity.y);
         PlayerAnimator.SetBool("grounded", grounded());
+        PlayerAnimator.SetBool("sliding on wall", SlidingOnWall);
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
