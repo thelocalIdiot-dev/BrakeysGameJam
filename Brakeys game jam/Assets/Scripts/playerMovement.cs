@@ -36,6 +36,7 @@ public class playerMovement : MonoBehaviour
     public float wallJumpTimer = 0.5f;
     public LayerMask wallJumpable;
     public bool onWall;
+    public bool SlidingOnWall;
     public bool wallJumping;
     RaycastHit2D wallLeft;
     RaycastHit2D wallRight;
@@ -62,18 +63,10 @@ public class playerMovement : MonoBehaviour
         else
             TG = 0;
 
-
         if (TG == 1)
             LSP = Instantiate(land, landPosition.position, Quaternion.LookRotation(new Vector3(0, 90, 0)));
             SoundManager.PlaySound(SoundType.land);
-
-        if (TG == 1)
-        {
-            LSP = Instantiate(land, landPosition.position, Quaternion.LookRotation(new Vector3(0, 90, 0)));
-            SoundManager.PlaySound(SoundType.land);
-        }
            
-
         Destroy(LSP, .5f);
         //---Horizontal Movement---//
         Vector2 movement = new Vector2(HorizontalInput * speed, rb.velocity.y);
@@ -119,7 +112,7 @@ public class playerMovement : MonoBehaviour
         wallLeft = Physics2D.Raycast(WallJumpCheck.position, Vector2.left, wallJumpDetectDistance, wallJumpable);
         wallRight = Physics2D.Raycast(WallJumpCheck.position, Vector2.right, wallJumpDetectDistance, wallJumpable);
 
-        if (wallLeft || wallRight)
+        if ((wallLeft || wallRight) && !grounded())
         {
             onWall = true;
         }
@@ -139,6 +132,16 @@ public class playerMovement : MonoBehaviour
             {
                 wallJump(-wallJumpForceX, wallJumpForceY);
             }
+        }
+
+        if((onWall && (HorizontalInput == 1 || HorizontalInput == -1) && !grounded()))
+        {
+            SlidingOnWall = true;
+            Debug.Log("qeflm<jkn s<difh,o<");
+        }
+        else
+        {
+            SlidingOnWall = false;
         }
     }
 
@@ -183,6 +186,7 @@ public class playerMovement : MonoBehaviour
         PlayerAnimator.SetFloat("Speed X", math.abs(HorizontalInput));
         PlayerAnimator.SetFloat("Speed Y", rb.velocity.y);
         PlayerAnimator.SetBool("grounded", grounded());
+        PlayerAnimator.SetBool("sliding on wall", SlidingOnWall);
     }
 
     private void OnTriggerEnter2D(Collider2D collision)

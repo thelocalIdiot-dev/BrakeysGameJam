@@ -23,9 +23,7 @@ public class attack : MonoBehaviour
         if(Input.GetMouseButtonDown(0) && CanAttack)
         {
             slashAttack();
-        }
-
-        Debug.Log(Speed.keys[Speed.length - 1].time);       
+        }   
     }
 
     void slashAttack()
