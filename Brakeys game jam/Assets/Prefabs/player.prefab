@@ -221,7 +221,9 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 8
   onWall: 0
+  SlidingOnWall: 0
   wallJumping: 0
+  wallSlideSpeed: 0.5
   TG: 0
 --- !u!70 &7223761258346105085
 CapsuleCollider2D:
@@ -232,7 +234,7 @@ CapsuleCollider2D:
   m_GameObject: {fileID: 6081797644146874736}
   m_Enabled: 1
   m_Density: 1
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 6200000, guid: e3d7109544ca4b94b890d78a7dc04ec5, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
