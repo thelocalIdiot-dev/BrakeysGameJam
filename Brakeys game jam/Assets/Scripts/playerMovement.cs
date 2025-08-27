@@ -36,9 +36,13 @@ public class playerMovement : MonoBehaviour
     public float wallJumpTimer = 0.5f;
     public LayerMask wallJumpable;
     public bool onWall;
+    public bool groundedBool;
     public bool wallJumping;
     RaycastHit2D wallLeft;
     RaycastHit2D wallRight;
+    RaycastHit2D SlidingLeft;
+    RaycastHit2D SlidingRight;
+    public float wallSlideSpeed = 0.5f;
     [Header("GroundCheck")]
 
 
@@ -50,7 +54,7 @@ public class playerMovement : MonoBehaviour
         instance = this;
         PlayerAnimator = GetComponentInChildren<Animator>();
     }
-    
+
     void Update()
     {
         GetInput();
@@ -65,14 +69,10 @@ public class playerMovement : MonoBehaviour
 
         if (TG == 1)
             LSP = Instantiate(land, landPosition.position, Quaternion.LookRotation(new Vector3(0, 90, 0)));
-            SoundManager.PlaySound(SoundType.land);
+        SoundManager.PlaySound(SoundType.land);
 
-        if (TG == 1)
-        {
-            LSP = Instantiate(land, landPosition.position, Quaternion.LookRotation(new Vector3(0, 90, 0)));
-            SoundManager.PlaySound(SoundType.land);
-        }
-           
+
+
 
         Destroy(LSP, .5f);
         //---Horizontal Movement---//
@@ -116,12 +116,23 @@ public class playerMovement : MonoBehaviour
 
     void DetectWallJump()
     {
+        if (grounded())
+        {
+            return;
+        }
         wallLeft = Physics2D.Raycast(WallJumpCheck.position, Vector2.left, wallJumpDetectDistance, wallJumpable);
         wallRight = Physics2D.Raycast(WallJumpCheck.position, Vector2.right, wallJumpDetectDistance, wallJumpable);
-
-        if (wallLeft || wallRight)
+        SlidingLeft = Physics2D.Raycast(WallJumpCheck.position, Vector2.left, 0.45f, wallJumpable);
+        SlidingRight = Physics2D.Raycast(WallJumpCheck.position, Vector2.right, 0.45f, wallJumpable);
+        if ((wallLeft || wallRight) && !grounded())
         {
+
             onWall = true;
+
+            if ((SlidingLeft || SlidingRight) && !grounded())
+            {
+                rb.velocity = new Vector2(rb.velocity.x, Mathf.Clamp(rb.velocity.y, -wallSlideSpeed, float.MaxValue));
+            }
         }
         else
         {
@@ -164,7 +175,16 @@ public class playerMovement : MonoBehaviour
 
     public bool grounded()
     {
-        return Physics2D.Raycast(groundCheck.position, Vector2.down, 0.3f, groundLayer);
+
+        if (Physics2D.Raycast(groundCheck.position, Vector2.down, 0.3f, groundLayer))
+        {
+            groundedBool = true;
+        }
+        else
+        {
+            groundedBool = false;
+        }
+        return groundedBool;
     }
 
     private void HandleFlip()
@@ -206,5 +226,8 @@ public class playerMovement : MonoBehaviour
         Gizmos.DrawLine(WallJumpCheck.position, WallJumpCheck.position + Vector3.left * wallJumpDetectDistance);
         Gizmos.DrawLine(WallJumpCheck.position, WallJumpCheck.position + Vector3.right * wallJumpDetectDistance);
         Gizmos.DrawLine(groundCheck.position, groundCheck.position + Vector3.down * 0.3f);
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawRay(WallJumpCheck.position, Vector2.left * 0.45f);
+        Gizmos.DrawRay(WallJumpCheck.position, Vector2.right * 0.37f);
     }
 }
