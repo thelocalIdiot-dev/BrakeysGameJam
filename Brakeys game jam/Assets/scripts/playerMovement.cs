@@ -38,6 +38,7 @@ public class playerMovement : MonoBehaviour
     public bool onWall;
     public bool groundedBool;
     public bool wallJumping;
+    public bool IsSliding;
     RaycastHit2D wallLeft;
     RaycastHit2D wallRight;
     RaycastHit2D SlidingLeft;
@@ -77,12 +78,12 @@ public class playerMovement : MonoBehaviour
         Destroy(LSP, .5f);
         //---Horizontal Movement---//
         Vector2 movement = new Vector2(HorizontalInput * speed, rb.velocity.y);
-        if (!wallJumping)
+        if (!wallJumping && !IsSliding)
         {
             rb.velocity = movement;
         }
         //---Jumping---//
-        if (!wallJumping)
+        if (!wallJumping && !IsSliding)
         {
             if (Jumping && grounded())
             {
@@ -118,12 +119,13 @@ public class playerMovement : MonoBehaviour
     {
         if (grounded())
         {
+            IsSliding = false;
             return;
         }
         wallLeft = Physics2D.Raycast(WallJumpCheck.position, Vector2.left, wallJumpDetectDistance, wallJumpable);
         wallRight = Physics2D.Raycast(WallJumpCheck.position, Vector2.right, wallJumpDetectDistance, wallJumpable);
-        SlidingLeft = Physics2D.Raycast(WallJumpCheck.position, Vector2.left, 0.45f, wallJumpable);
-        SlidingRight = Physics2D.Raycast(WallJumpCheck.position, Vector2.right, 0.45f, wallJumpable);
+        SlidingLeft = Physics2D.Raycast(WallJumpCheck.position, Vector2.left, 0.32f, wallJumpable);
+        SlidingRight = Physics2D.Raycast(WallJumpCheck.position, Vector2.right, 0.35f, wallJumpable);
         if ((wallLeft || wallRight) && !grounded())
         {
 
@@ -131,12 +133,15 @@ public class playerMovement : MonoBehaviour
 
             if ((SlidingLeft || SlidingRight) && !grounded())
             {
+                IsSliding = true;
                 rb.velocity = new Vector2(rb.velocity.x, Mathf.Clamp(rb.velocity.y, -wallSlideSpeed, float.MaxValue));
             }
+
         }
         else
         {
             onWall = false;
+            IsSliding = false;
         }
 
         if (onWall && Jumping && !grounded() && !wallJumping)
@@ -227,7 +232,7 @@ public class playerMovement : MonoBehaviour
         Gizmos.DrawLine(WallJumpCheck.position, WallJumpCheck.position + Vector3.right * wallJumpDetectDistance);
         Gizmos.DrawLine(groundCheck.position, groundCheck.position + Vector3.down * 0.3f);
         Gizmos.color = Color.yellow;
-        Gizmos.DrawRay(WallJumpCheck.position, Vector2.left * 0.45f);
-        Gizmos.DrawRay(WallJumpCheck.position, Vector2.right * 0.37f);
+        Gizmos.DrawRay(WallJumpCheck.position, Vector2.left * 0.32f);
+        Gizmos.DrawRay(WallJumpCheck.position, Vector2.right * 0.3f);
     }
 }
