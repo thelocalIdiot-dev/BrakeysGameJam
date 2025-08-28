@@ -39,7 +39,7 @@ public class deathManager : MonoBehaviour
     public void die()
     {
         //SoundManager.PlaySound(SoundType.death);
-        //GameManager.instance.restart();
+        GameManager.instance.restart();
         //DeathScreen.SetActive(true);
         //ShakeManager.Shake(impulseSource);
         //effects();
